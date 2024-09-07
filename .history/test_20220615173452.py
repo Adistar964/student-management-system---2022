@@ -1,0 +1,80 @@
+from multiprocessing import Value
+from tkinter import *
+from tkinter import messagebox
+from tkinter.font import Font
+import sqlite3
+
+conn = sqlite3.connect("students.db")
+conn.row_factory = sqlite3.Row
+cur = conn.cursor()
+
+def delete_student(adm_no):
+    cur.execute(f"DELETE FROM students WHERE admission_number={adm_no}")
+    conn.commit()
+    messagebox.showinfo("Student deleted", "successfully deleted the student entry!")
+
+def display_student(student):
+    r = Toplevel()
+    Label(r, text=student["name"]).pack()
+    Label(r,text="").pack(pady=15)
+    keys = list(student.keys())
+    keys.pop(0)
+    labels = []
+    for i in keys:
+        labels.append(i)
+    for i in labels:
+        ent = Entry(r)
+        ent.insert(i.replace("_"," "))
+        ent.config(state="disabled")
+        ent.pack(fill=X)
+    r.mainloop()
+
+def update_student(student):
+    keys = list(student.keys())
+    keys.pop(0)
+    labels = []
+    for i in keys:
+        labels.append(i.replace("_"," "))
+    def change_entry():
+        ent.delete(0,END)
+        ent.insert(0,student[value_of_menu.get().replace(" ","_")])
+    def do_update():
+        cur.execute(f"UPDATE students SET {value_of_menu.get().replace(' ','_')}:{ent.get()}")
+        conn.commit()
+        r.destroy()
+        messagebox.showinfo("updated student", "successfully updated the student entry!")
+    r = Toplevel()
+    value_of_menu = StringVar()
+    ent = Entry(r)
+    OptionMenu(r, value_of_menu, *labels, command=change_entry).pack()
+    ent.pack()
+    Button(r, text="Update", command=do_update).pack()
+    r.mainloop()
+
+def create_student():
+    r = Toplevel()
+    Label(r, text="Create Student").grid(row=0,column=0,anchor="center")
+    Label(r,text="").pack(pady=15)
+    cur.execute("SELECT * FROM students")
+    conn.commit()
+    data = list(dict(cur.fetchone()).keys())
+    data.pop(0)
+    for idx,i in enumerate(data):
+        data[idx] = i.replace("_"," ")
+    labels = [data[n:n+3] for n in range(0,len(data),3)]
+    ents = []
+    def do_cr():
+        cur.execute("")
+        conn.commit()
+        messagebox.showinfo("created student", "successfully created student entry!")
+    for idx,i in labels:
+        for j,jdx in i:
+            frame = Frame(r)
+            Label(frame, text=j).pack(pady=10)
+            ent = Entry(frame)
+            ent.insert(0,"Asas")
+            ent.append(ent)
+            ent.pack()
+            frame.grid(row=idx+1,column=jdx)
+    Button(r, text="Create", command=do_cr)
+    r.mainloop()
